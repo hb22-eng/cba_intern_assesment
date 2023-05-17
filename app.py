@@ -53,35 +53,45 @@ def query_transac_data(start_date, end_date):
 
     return jsonify(new_transactional_data)
 
-if __name__ == '__main__': # Will only run code inside if statement when program is run directly by python interpreter
-    app.run()
+
 
 
 #Question 7 POST/dataGenerator
 
-
-import csv
 import mysql.connector
-
-class D:
-    def __init__(self, db_host, db_user, db_password, db_name):
-        self.db_host = db_host
-        self.db_user = db_user
-        self.db_password = db_password
-        self.db_name = db_name
-    
+class DataProcessor:
     def read_data_from_csv(self,csv_file_path):
-        dt=[]
+        data=[]
         try:
             with open(csv_file_path, 'r') as file:
                 reader = csv.reader(file)
-                next(reader)
                 for row in reader:
-                    dt.append(row)
+                    data.append(row)
         except IOError:
             print(f"Error: Could not read data from CSV file '{csv_file_path}'")
-        return dt 
-    
+        return data
+   
+    def store_into_mysql(self,data):
+ #CREATE MYSQL CONNECTION
+        conn = mysql.connector.connect(
+            host='localhost',
+            user='root',
+            password = 'F00tb@11z',
+            database = 'your_database')
+        if conn.is_connected():
+            cursor = conn.cursor()
+            cursor.execute('CREATE DATABASE/TABLE')
+            insert_query = 'Insert DATA'
+            cursor.executemany(insert_query,data)
+            
+            
+            conn.commit()
+            cursor.close()
+            conn.close()
+
+
+
+            print("loaded data successfully")
 
 
 
@@ -89,7 +99,6 @@ class D:
 
 if __name__ == '__main__':
     app.run()
-
 
 
 
