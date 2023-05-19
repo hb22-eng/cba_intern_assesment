@@ -1,7 +1,14 @@
 from flask import Flask, jsonify, request
 
+from datetime import datetime 
 
-import csv
+
+from src.utils.csv_sql_class import DataProcessor
+data_processor = DataProcessor()
+from src.utils.sql_json import DataMethods
+Dtm = DataMethods()
+
+
 
 app = Flask(__name__)
 
@@ -27,73 +34,31 @@ def process_csv(file_path):
             values =line.strip().split(',')
             row_data = dict(zip(header_skip, values))
             data.append(row_data)
-
     return data
 
+# Calling the class to read the csv
+csvdata = data_processor.read_data_from_csv("\\C:\\cba_intern_assesment\\src\\data")
+# Calling class again to transfer to mySQL
+data_processor.store_data_to_mysql(csvdata,database ='lou', table = 'newt')
 
 
 # b. GET Transactional Data
-#Make our Query Database
-import datetime
 
-def query_transac_data(start_date, end_date):
 
-    @app.route('/getTransactionalData', methods = ['GET'])
-
-    def get_Transactional_data():
-        date = request.args.get('date') #dictionary collection request.args.get
-        try:
-            new_date = datetime.datetime.strptime(date, '%YYYY-%MM-%DD').date()
-        except ValueError:
-            return jsonify({'ERROR: Date format is Invalid. Please use YYYY-MM-DD.'}), 400
+@app.route('/getTransactionalData', methods = ['GET'])
+def get_Transactional_data():
+    date = request.args.get('date') #dictionary collection request.args.get
+    try:
+        new_date = datetime.date(date, '%Y-%m-%d').date()
+    except ValueError:
+        return jsonify({'ERROR: Date format is Invalid. Please use YYYY-MM-DD.'}), 400
     
-    current_date = datetime.date.today() #Retreiving current date
-
-    new_transactional_data = query_transac_data(new_date, current_date) #query_dtbase will be defined later
-
+    current_date = datetime.now() #Retreiving current date
+    
+# Calling our methods class
+    new_transactional_data = Dtm.get_transactional_data_date(date) #query_dtbase will be defined later
+    
     return jsonify(new_transactional_data)
-
-
-
-
-#Question 7 POST/dataGenerator
-
-import mysql.connector
-class DataProcessor:
-    def read_data_from_csv(self,csv_file_path):
-        data=[]
-        try:
-            with open(csv_file_path, 'r') as file:
-                reader = csv.reader(file)
-                for row in reader:
-                    data.append(row)
-        except IOError:
-            print(f"Error: Could not read data from CSV file '{csv_file_path}'")
-        return data
-   
-    def store_into_mysql(self,data):
- #CREATE MYSQL CONNECTION
-        conn = mysql.connector.connect(
-            host='localhost',
-            user='root',
-            password = 'F00tb@11z',
-            database = 'your_database')
-        if conn.is_connected():
-            cursor = conn.cursor()
-            cursor.execute('CREATE DATABASE/TABLE')
-            insert_query = 'Insert DATA'
-            cursor.executemany(insert_query,data)
-            
-            
-            conn.commit()
-            cursor.close()
-            conn.close()
-
-
-
-            print("loaded data successfully")
-
-
 
 
 
